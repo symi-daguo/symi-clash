@@ -1,0 +1,26 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Clash Proxy",
+        "description": "Set up Clash proxy with subscription URL",
+        "data": {
+          "subscription_url": "Subscription URL",
+          "proxy_mode": "Proxy Mode",
+          "allow_lan": "Allow LAN Access",
+          "log_level": "Log Level",
+          "auto_update": "Auto Update",
+          "update_interval": "Update Interval (hours)"
+        }
+      }
+    },
+    "abort": {
+      "already_configured": "This subscription URL is already configured"
+    },
+    "error": {
+      "cannot_connect": "Failed to connect",
+      "invalid_subscription": "Invalid subscription URL",
+      "unknown": "Unknown error"
+    }
+  }
+} 

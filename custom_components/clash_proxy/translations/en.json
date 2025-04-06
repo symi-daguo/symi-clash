@@ -1,0 +1,96 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Clash Proxy Configuration",
+        "description": "Set up Clash proxy service, supports Shadowsocks, V2Ray, Trojan, etc.",
+        "data": {
+          "subscription_url": "Subscription URL",
+          "proxy_mode": "Proxy Mode",
+          "allow_lan": "Allow LAN Access",
+          "log_level": "Log Level",
+          "auto_update": "Auto Update",
+          "update_interval": "Update Interval (hours)"
+        }
+      }
+    },
+    "abort": {
+      "already_configured": "This subscription URL is already configured"
+    },
+    "error": {
+      "cannot_connect": "Failed to connect",
+      "invalid_subscription": "Invalid subscription URL",
+      "unknown": "Unknown error"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Clash Proxy Options",
+        "description": "Modify Clash proxy settings",
+        "data": {
+          "proxy_mode": "Proxy Mode",
+          "allow_lan": "Allow LAN Access",
+          "log_level": "Log Level",
+          "auto_update": "Auto Update",
+          "update_interval": "Update Interval (hours)"
+        }
+      }
+    }
+  },
+  "selector": {
+    "proxy_mode": {
+      "options": {
+        "rule": "Rule Mode",
+        "global": "Global Mode",
+        "direct": "Direct Mode"
+      }
+    },
+    "log_level": {
+      "options": {
+        "info": "Info",
+        "debug": "Debug",
+        "warning": "Warning",
+        "error": "Error",
+        "silent": "Silent"
+      }
+    }
+  },
+  "entity": {
+    "switch": {
+      "clash_proxy": {
+        "name": "Clash Proxy",
+        "state_attributes": {
+          "subscription_url": "Subscription URL",
+          "proxy_mode": "Proxy Mode",
+          "allow_lan": "Allow LAN Access",
+          "log_level": "Log Level",
+          "auto_update": "Auto Update",
+          "update_interval": "Update Interval (hours)"
+        }
+      }
+    }
+  },
+  "services": {
+    "update_config": {
+      "name": "Update Config",
+      "description": "Update Clash configuration and subscription",
+      "fields": {
+        "subscription_url": {
+          "name": "Subscription URL",
+          "description": "New subscription URL"
+        }
+      }
+    },
+    "toggle_proxy": {
+      "name": "Toggle Proxy",
+      "description": "Enable or disable Clash proxy",
+      "fields": {
+        "enabled": {
+          "name": "Enabled",
+          "description": "Whether to enable the proxy"
+        }
+      }
+    }
+  }
+} 

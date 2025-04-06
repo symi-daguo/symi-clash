@@ -1,6 +1,7 @@
 {
-  "name": "Clash代理",
+  "name": "Clash Proxy",
   "render_readme": true,
   "homeassistant": "2023.3.0",
-  "hacs": "1.32.0"
+  "hacs": "1.32.0",
+  "domain": "clash_proxy"
 } 

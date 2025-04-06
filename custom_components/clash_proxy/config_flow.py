@@ -39,7 +39,7 @@ class ClashProxyConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             self._abort_if_unique_id_configured()
 
             return self.async_create_entry(
-                title=f"Clash代理 ({subscription_url[:20]}...)",
+                title=f"Clash Proxy ({subscription_url[:20]}...)",
                 data=user_input,
             )
 

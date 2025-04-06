@@ -20,14 +20,18 @@
    - URL: `https://github.com/symi-daguo/symi-clash`
 3. 在HACS中搜索并安装 "Clash Proxy"
 4. 重启 Home Assistant
-5. 在集成页面添加 "Clash代理" 集成
+5. 在集成页面中，点击右下角的"+ 添加集成"按钮
+6. 搜索 "Clash Proxy"（如果找不到，请尝试搜索"clash"或"proxy"）
+7. 按照向导输入订阅地址和其他配置
 
 ### 手动安装
 
 1. 下载此仓库
 2. 将 `custom_components/clash_proxy` 目录复制到您的 Home Assistant 配置目录的 `custom_components` 文件夹中
 3. 重启 Home Assistant
-4. 在集成页面添加 "Clash代理" 集成
+4. 在集成页面中，点击右下角的"+ 添加集成"按钮
+5. 搜索 "Clash Proxy"（如果找不到，请尝试搜索"clash"或"proxy"）
+6. 按照向导输入订阅地址和其他配置
 
 ## 配置说明
 
@@ -84,6 +88,9 @@ A: 请检查您的订阅地址是否正确。查看Home Assistant日志以获取
 
 **Q: 如何更新代理节点？**  
 A: 集成会根据您设置的更新间隔自动更新订阅。您也可以调用`clash_proxy.update_config`服务手动更新，或重启集成触发更新。
+
+**Q: 安装后在集成页面找不到Clash Proxy怎么办？**  
+A: 尝试搜索"clash"或"proxy"关键词，或者检查是否有错误日志。确保在HACS安装后已重启Home Assistant。
 
 ## 隐私说明
 
