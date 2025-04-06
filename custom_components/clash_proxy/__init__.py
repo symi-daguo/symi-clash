@@ -25,6 +25,7 @@ from .const import (
     CONF_ALLOW_LAN,
     CONF_LOG_LEVEL,
     CONF_UPDATE_INTERVAL,
+    CONF_AUTO_SELECT_SUPER,
     DATA_CLIENT,
     DATA_CONFIG,
     DATA_UPDATED,
@@ -48,6 +49,7 @@ CONFIG_SCHEMA = vol.Schema(
                 vol.Optional(CONF_UPDATE_INTERVAL, default=12): vol.All(
                     vol.Coerce(int), vol.Range(min=1, max=24)
                 ),
+                vol.Optional(CONF_AUTO_SELECT_SUPER, default=True): cv.boolean,
             }
         )
     },
@@ -77,6 +79,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     log_level = entry.data.get(CONF_LOG_LEVEL, "info")
     auto_update = entry.data.get(CONF_AUTO_UPDATE, True)
     update_interval = entry.data.get(CONF_UPDATE_INTERVAL, 12)
+    auto_select_super = entry.data.get(CONF_AUTO_SELECT_SUPER, True)
     
     client = ClashClient(
         subscription_url=subscription_url,
@@ -85,6 +88,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         log_level=log_level,
         auto_update=auto_update,
         update_interval=update_interval,
+        auto_select_super=auto_select_super,
     )
     
     await hass.async_add_executor_job(client.start)

@@ -1,1 +1,1 @@
-{"config":{"step":{"user":{"title":"Clash代理","description":"配置Clash代理","data":{"subscription_url":"订阅地址"}}}}} 
+{"config":{"step":{"user":{"title":"添加Clash代理","description":"只需填写订阅地址，将自动连接到Super代理组","data":{"subscription_url":"订阅地址"}}},"abort":{"already_configured":"此订阅地址已配置"},"error":{"cannot_connect":"连接失败","invalid_subscription":"无效的订阅地址","unknown":"未知错误"}}} 

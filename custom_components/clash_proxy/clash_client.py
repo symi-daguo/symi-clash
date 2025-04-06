@@ -8,7 +8,10 @@ import tempfile
 import threading
 import time
 import urllib.request
-from typing import Any, Dict
+import json
+import yaml
+import re
+from typing import Any, Dict, List, Optional
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -23,6 +26,7 @@ class ClashClient:
         log_level: str = "info",
         auto_update: bool = True,
         update_interval: int = 12,
+        auto_select_super: bool = True,
     ):
         """初始化Clash客户端"""
         self.subscription_url = subscription_url
@@ -31,6 +35,7 @@ class ClashClient:
         self.log_level = log_level
         self.auto_update = auto_update
         self.update_interval = update_interval
+        self.auto_select_super = auto_select_super
         self.process = None
         self.config_path = None
         self.executable_path = self._get_executable_path()
@@ -43,6 +48,8 @@ class ClashClient:
             "connections": 0,
             "latency": {}
         }
+        self.selected_proxy = None
+        self.api_base_url = "http://127.0.0.1:9090"
 
     def _get_executable_path(self) -> str:
         """获取可执行文件路径"""
@@ -84,7 +91,6 @@ class ClashClient:
         
         if system == "windows":
             download_url = f"https://github.com/Dreamacro/clash/releases/download/{version}/clash-{system}-{arch}-{version}.zip"
-            # 下载并解压缩
             try:
                 temp_file = os.path.join(os.path.dirname(executable_path), "clash.zip")
                 urllib.request.urlretrieve(download_url, temp_file)
@@ -98,7 +104,6 @@ class ClashClient:
                 raise
         else:
             download_url = f"https://github.com/Dreamacro/clash/releases/download/{version}/clash-{system}-{arch}-{version}.gz"
-            # 下载并解压缩
             try:
                 temp_file = os.path.join(os.path.dirname(executable_path), "clash.gz")
                 urllib.request.urlretrieve(download_url, temp_file)
@@ -131,14 +136,54 @@ class ClashClient:
             with os.fdopen(fd, "w") as f:
                 f.write(config_content)
                 
-            # 添加或修改一些配置项
-            # 这里可以进一步修改配置，如端口、允许局域网访问等
+            # 检查是否包含super代理组，并自动修改配置
+            if self.auto_select_super:
+                self._modify_config_for_super_group(config_path)
                 
             return config_path
             
         except Exception as e:
             _LOGGER.error("生成配置失败: %s", str(e))
             raise
+
+    def _modify_config_for_super_group(self, config_path: str) -> None:
+        """修改配置文件，自动选择super代理组"""
+        try:
+            # 读取配置文件
+            with open(config_path, "r") as f:
+                config = yaml.safe_load(f)
+            
+            # 查找proxy-groups中包含super关键字的组
+            super_groups = []
+            if 'proxy-groups' in config:
+                for idx, group in enumerate(config['proxy-groups']):
+                    group_name = group.get('name', '').lower()
+                    if 'super' in group_name:
+                        super_groups.append((idx, group))
+                        _LOGGER.info(f"找到super代理组: {group['name']}")
+            
+            # 如果找到super代理组，将其设置为自动选择第一个代理
+            if super_groups:
+                # 找到第一个super代理组
+                _, super_group = super_groups[0]
+                
+                # 确保代理组类型为select
+                if super_group.get('type') == 'select' and 'proxies' in super_group and super_group['proxies']:
+                    # 默认选择第一个代理
+                    first_proxy = super_group['proxies'][0]
+                    self.selected_proxy = first_proxy
+                    _LOGGER.info(f"自动选择super代理组中的代理: {first_proxy}")
+                    
+                    # 更新配置文件
+                    with open(config_path, "w") as f:
+                        yaml.dump(config, f)
+                        
+            else:
+                _LOGGER.warning("未找到super代理组，将使用默认配置")
+                
+        except Exception as e:
+            _LOGGER.error(f"修改super代理组配置失败: {str(e)}")
+            # 继续使用原始配置
 
     def start(self) -> None:
         """启动Clash"""
@@ -171,6 +216,11 @@ class ClashClient:
                 
             self.running = True
             
+            # 如果启用了自动选择super代理组，切换到选中的代理
+            if self.auto_select_super and self.selected_proxy:
+                time.sleep(2)  # 等待API可用
+                self._switch_to_selected_proxy()
+            
             # 启动自动更新线程
             if self.auto_update:
                 self.stop_update.clear()
@@ -184,6 +234,34 @@ class ClashClient:
             _LOGGER.error("启动Clash失败: %s", str(e))
             self.stop()
             raise
+
+    def _switch_to_selected_proxy(self) -> None:
+        """切换到选中的代理"""
+        if not self.selected_proxy:
+            return
+            
+        try:
+            # 获取所有代理组
+            proxy_groups_url = f"{self.api_base_url}/proxies"
+            response = requests.get(proxy_groups_url, timeout=5)
+            
+            if response.status_code == 200:
+                proxy_data = response.json()
+                if 'proxies' in proxy_data:
+                    # 寻找super代理组
+                    for group_name, group_info in proxy_data['proxies'].items():
+                        if 'super' in group_name.lower() and group_info['type'] == 'Selector':
+                            # 切换到选中的代理
+                            switch_url = f"{self.api_base_url}/proxies/{group_name}"
+                            requests.put(
+                                switch_url,
+                                json={"name": self.selected_proxy},
+                                timeout=5
+                            )
+                            _LOGGER.info(f"已切换代理组 {group_name} 到 {self.selected_proxy}")
+                            break
+        except Exception as e:
+            _LOGGER.error(f"切换代理失败: {str(e)}")
 
     def stop(self) -> None:
         """停止Clash"""
@@ -266,6 +344,8 @@ class ClashClient:
             "log_level": self.log_level,
             "auto_update": self.auto_update,
             "update_interval": self.update_interval,
+            "auto_select_super": self.auto_select_super,
+            "selected_proxy": self.selected_proxy,
             "stats": self.stats
         }
         
@@ -273,8 +353,25 @@ class ClashClient:
         if self.running:
             try:
                 # 从Clash API获取状态信息
-                # 这里可以添加更多API调用获取更详细的信息
-                pass
+                try:
+                    # 获取当前流量
+                    traffic_url = f"{self.api_base_url}/traffic"
+                    response = requests.get(traffic_url, timeout=5)
+                    if response.status_code == 200:
+                        traffic_data = response.json()
+                        if 'up' in traffic_data and 'down' in traffic_data:
+                            status['stats']['upload'] = traffic_data['up']
+                            status['stats']['download'] = traffic_data['down']
+                            
+                    # 获取连接数
+                    connections_url = f"{self.api_base_url}/connections"
+                    response = requests.get(connections_url, timeout=5)
+                    if response.status_code == 200:
+                        connections_data = response.json()
+                        if 'connections' in connections_data:
+                            status['stats']['connections'] = len(connections_data['connections'])
+                except Exception as e:
+                    _LOGGER.debug(f"获取Clash API状态失败: {str(e)}")
             except Exception as e:
                 _LOGGER.error("获取Clash状态失败: %s", str(e))
                 

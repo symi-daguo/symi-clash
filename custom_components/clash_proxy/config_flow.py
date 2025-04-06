@@ -9,11 +9,6 @@ import homeassistant.helpers.config_validation as cv
 
 from .const import (
     CONF_SUBSCRIPTION_URL,
-    CONF_PROXY_MODE,
-    CONF_ALLOW_LAN,
-    CONF_LOG_LEVEL,
-    CONF_AUTO_UPDATE,
-    CONF_UPDATE_INTERVAL,
     DOMAIN,
 )
 
@@ -38,6 +33,16 @@ class ClashProxyConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             await self.async_set_unique_id(subscription_url)
             self._abort_if_unique_id_configured()
 
+            # 使用默认设置，简化配置
+            user_input.update({
+                "proxy_mode": "rule",
+                "allow_lan": True,
+                "log_level": "info",
+                "auto_update": True,
+                "update_interval": 12,
+                "auto_select_super": True,  # 新增: 自动选择super代理组
+            })
+
             return self.async_create_entry(
                 title=f"Clash Proxy ({subscription_url[:20]}...)",
                 data=user_input,
@@ -49,17 +54,6 @@ class ClashProxyConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             data_schema=vol.Schema(
                 {
                     vol.Required(CONF_SUBSCRIPTION_URL): str,
-                    vol.Optional(CONF_PROXY_MODE, default="rule"): vol.In(
-                        ["rule", "global", "direct"]
-                    ),
-                    vol.Optional(CONF_ALLOW_LAN, default=True): bool,
-                    vol.Optional(CONF_LOG_LEVEL, default="info"): vol.In(
-                        ["info", "debug", "warning", "error", "silent"]
-                    ),
-                    vol.Optional(CONF_AUTO_UPDATE, default=True): bool,
-                    vol.Optional(CONF_UPDATE_INTERVAL, default=12): vol.All(
-                        vol.Coerce(int), vol.Range(min=1, max=24)
-                    ),
                 }
             ),
             errors=errors,
@@ -84,45 +78,18 @@ class ClashProxyOptionsFlow(config_entries.OptionsFlow):
         if user_input is not None:
             return self.async_create_entry(title="", data=user_input)
 
+        # 简化选项配置
         return self.async_show_form(
             step_id="init",
             data_schema=vol.Schema(
                 {
                     vol.Optional(
-                        CONF_PROXY_MODE,
+                        "auto_select_super",
                         default=self.config_entry.options.get(
-                            CONF_PROXY_MODE, 
-                            self.config_entry.data.get(CONF_PROXY_MODE, "rule")
-                        ),
-                    ): vol.In(["rule", "global", "direct"]),
-                    vol.Optional(
-                        CONF_ALLOW_LAN,
-                        default=self.config_entry.options.get(
-                            CONF_ALLOW_LAN, 
-                            self.config_entry.data.get(CONF_ALLOW_LAN, True)
+                            "auto_select_super",
+                            self.config_entry.data.get("auto_select_super", True)
                         ),
                     ): bool,
-                    vol.Optional(
-                        CONF_LOG_LEVEL,
-                        default=self.config_entry.options.get(
-                            CONF_LOG_LEVEL, 
-                            self.config_entry.data.get(CONF_LOG_LEVEL, "info")
-                        ),
-                    ): vol.In(["info", "debug", "warning", "error", "silent"]),
-                    vol.Optional(
-                        CONF_AUTO_UPDATE,
-                        default=self.config_entry.options.get(
-                            CONF_AUTO_UPDATE, 
-                            self.config_entry.data.get(CONF_AUTO_UPDATE, True)
-                        ),
-                    ): bool,
-                    vol.Optional(
-                        CONF_UPDATE_INTERVAL,
-                        default=self.config_entry.options.get(
-                            CONF_UPDATE_INTERVAL, 
-                            self.config_entry.data.get(CONF_UPDATE_INTERVAL, 12)
-                        ),
-                    ): vol.All(vol.Coerce(int), vol.Range(min=1, max=24)),
                 }
             ),
         ) 

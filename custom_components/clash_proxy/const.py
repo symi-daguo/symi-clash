@@ -8,6 +8,7 @@ CONF_ALLOW_LAN = "allow_lan"
 CONF_LOG_LEVEL = "log_level"
 CONF_AUTO_UPDATE = "auto_update"
 CONF_UPDATE_INTERVAL = "update_interval"
+CONF_AUTO_SELECT_SUPER = "auto_select_super"
 
 DATA_CLIENT = "client"
 DATA_CONFIG = "config"
