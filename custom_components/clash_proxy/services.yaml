@@ -1,0 +1,22 @@
+update_config:
+  name: 更新配置
+  description: 更新Clash配置和订阅
+  fields:
+    subscription_url:
+      name: 订阅地址
+      description: 新的订阅地址URL
+      example: "https://example.com/clash/config"
+      required: false
+      selector:
+        text:
+
+toggle_proxy:
+  name: 切换代理
+  description: 启用或禁用Clash代理
+  fields:
+    enabled:
+      name: 启用
+      description: 是否启用代理
+      required: true
+      selector:
+        boolean: 
